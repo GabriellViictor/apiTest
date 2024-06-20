@@ -1,5 +1,4 @@
-import * as express from 'express';
-import { Request, Response } from 'express';
+import express, { Request, Response } from 'express';
 import mongoose from 'mongoose';
 import bodyParser from 'body-parser';
 
@@ -17,7 +16,6 @@ const UserSchema = new mongoose.Schema({
 
 const UserModel = mongoose.model('User', UserSchema);
 
-// Rota de login
 app.post('/login', async (req: Request, res: Response) => {
     const { login, senha } = req.body;
 
@@ -30,7 +28,7 @@ app.post('/login', async (req: Request, res: Response) => {
             res.status(401).json({ message: 'Credenciais inválidas' });
         }
     } catch (err) {
-        console.error(err);
+        console.error('Erro ao processar login:', err);
         res.status(500).json({ message: 'Erro ao processar login' });
     }
 });
