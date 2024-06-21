@@ -40,7 +40,6 @@ app.post('/login', async (req: Request, res: Response) => {
     }
 });
 
-// Rota para buscar horários disponíveis
 app.get('/horarios-disponiveis', async (req: Request, res: Response) => {
     try {
         const horariosDisponiveis = await HorarioModel.find({ disponivel: true });
@@ -48,6 +47,16 @@ app.get('/horarios-disponiveis', async (req: Request, res: Response) => {
     } catch (err) {
         console.error('Erro ao buscar horários disponíveis:', err);
         res.status(500).json({ message: 'Erro ao buscar horários disponíveis' });
+    }
+});
+
+app.get('/horarios-indisponiveis', async (req: Request, res: Response) => {
+    try {
+        const horariosIndisponiveis = await HorarioModel.find({ disponivel: false });
+        res.json(horariosIndisponiveis);
+    } catch (err) {
+        console.error('Erro ao buscar horários indisponíveis:', err);
+        res.status(500).json({ message: 'Erro ao buscar horários indisponíveis' });
     }
 });
 
