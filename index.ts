@@ -53,27 +53,45 @@ app.get('/horarios-disponiveis', async (req: Request, res: Response) => {
 
 // Rota para marcar um horário como ocupado
 app.post('/marcar-horario', async (req: Request, res: Response) => {
-    const { horarioId } = req.body;
+    const { horario } = req.body;
 
     try {
-        const horario = await HorarioModel.findById(horarioId);
+        const horarioMarcado = await HorarioModel.findOneAndUpdate(
+            { horario, disponivel: true },
+            { disponivel: false },
+            { new: true }
+        );
 
-        if (!horario) {
-            return res.status(404).json({ message: 'Horário não encontrado' });
+        if (!horarioMarcado) {
+            return res.status(404).json({ message: 'Horário não encontrado ou já está ocupado' });
         }
 
-        if (!horario.disponivel) {
-            return res.status(400).json({ message: 'Horário já está marcado como ocupado' });
-        }
-
-        // Atualiza o horário para marcar como não disponível
-        horario.disponivel = false;
-        await horario.save();
-
-        res.json({ message: 'Horário marcado como ocupado com sucesso' });
+        res.json({ message: `Horário ${horario} marcado como ocupado com sucesso` });
     } catch (err) {
         console.error('Erro ao marcar horário como ocupado:', err);
         res.status(500).json({ message: 'Erro ao marcar horário como ocupado' });
+    }
+});
+
+// Rota para desmarcar um horário
+app.post('/desmarcar-horario', async (req: Request, res: Response) => {
+    const { horario } = req.body;
+
+    try {
+        const horarioDesmarcado = await HorarioModel.findOneAndUpdate(
+            { horario, disponivel: false }, // Procura pelo horário marcado como ocupado
+            { disponivel: true }, // Marca como disponível novamente
+            { new: true }
+        );
+
+        if (!horarioDesmarcado) {
+            return res.status(404).json({ message: 'Horário não encontrado ou já está disponível' });
+        }
+
+        res.json({ message: `Horário ${horario} desmarcado com sucesso` });
+    } catch (err) {
+        console.error('Erro ao desmarcar horário:', err);
+        res.status(500).json({ message: 'Erro ao desmarcar horário' });
     }
 });
 
