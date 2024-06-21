@@ -7,10 +7,7 @@ const PORT = 3333;
 
 app.use(bodyParser.json());
 
-mongoose.connect('mongodb://localhost:27017/minha_base_de_dados', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-});
+mongoose.connect('mongodb://localhost:27017/minha_base_de_dados');
 
 const UserSchema = new mongoose.Schema({
     login: String,
