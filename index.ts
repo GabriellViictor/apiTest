@@ -25,7 +25,7 @@ const HorarioModel = mongoose.model('Horario', HorarioSchema);
 
 // Esquema do agendamento
 const AgendamentoSchema = new mongoose.Schema({
-    horario: String,
+    horario: { type: mongoose.Schema.Types.ObjectId, ref: 'Horario' },
     data: String,
     servico: String,
     valor: Number,
@@ -72,9 +72,9 @@ app.get('/horarios-indisponiveis', async (req: Request, res: Response) => {
     }
 });
 
-// Rota para marcar um horário como ocupado
+// Rota para marcar um horário como ocupado e criar um agendamento
 app.post('/marcar-horario', async (req: Request, res: Response) => {
-    const { horario } = req.body;
+    const { horario, data, servico, valor, minuto } = req.body;
 
     try {
         const horarioMarcado = await HorarioModel.findOneAndUpdate(
@@ -87,6 +87,16 @@ app.post('/marcar-horario', async (req: Request, res: Response) => {
             return res.status(404).json({ message: 'Horário não encontrado ou já está ocupado' });
         }
 
+        const agendamento = new AgendamentoModel({
+            horario: horarioMarcado._id,
+            data,
+            servico,
+            valor,
+            minuto,
+        });
+
+        await agendamento.save();
+
         res.json({ message: `Horário ${horario} marcado como ocupado com sucesso` });
     } catch (err) {
         console.error('Erro ao marcar horário como ocupado:', err);
@@ -94,20 +104,22 @@ app.post('/marcar-horario', async (req: Request, res: Response) => {
     }
 });
 
-// Rota para desmarcar um horário
+// Rota para desmarcar um horário e remover o agendamento correspondente
 app.post('/desmarcar-horario', async (req: Request, res: Response) => {
     const { horario } = req.body;
 
     try {
         const horarioDesmarcado = await HorarioModel.findOneAndUpdate(
-            { horario, disponivel: false }, // Procura pelo horário marcado como ocupado
-            { disponivel: true }, // Marca como disponível novamente
+            { horario, disponivel: false },
+            { disponivel: true },
             { new: true }
         );
 
         if (!horarioDesmarcado) {
             return res.status(404).json({ message: 'Horário não encontrado ou já está disponível' });
         }
+
+        await AgendamentoModel.findOneAndDelete({ horario: horarioDesmarcado._id });
 
         res.json({ message: `Horário ${horario} desmarcado com sucesso` });
     } catch (err) {
@@ -119,7 +131,7 @@ app.post('/desmarcar-horario', async (req: Request, res: Response) => {
 // Rota para obter todos os agendamentos
 app.get('/agendamentos', async (req: Request, res: Response) => {
     try {
-        const agendamentos = await AgendamentoModel.find();
+        const agendamentos = await AgendamentoModel.find().populate('horario');
         res.json(agendamentos);
     } catch (err) {
         console.error('Erro ao buscar agendamentos:', err);
@@ -137,6 +149,8 @@ app.post('/desagendar', async (req: Request, res: Response) => {
         if (!agendamentoRemovido) {
             return res.status(404).json({ message: 'Agendamento não encontrado' });
         }
+
+        await HorarioModel.findByIdAndUpdate(agendamentoRemovido.horario, { disponivel: true });
 
         res.json({ message: `Agendamento para ${horario} na data ${data} removido com sucesso` });
     } catch (err) {
