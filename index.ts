@@ -97,7 +97,10 @@ app.post('/marcar-horario', async (req: Request, res: Response) => {
 
         await agendamento.save();
 
-        res.json({ message: `Horário ${horario} marcado como ocupado com sucesso` });
+        res.json({
+            message: `Horário ${horario} marcado como ocupado com sucesso`,
+            agendamento,
+        });
     } catch (err) {
         console.error('Erro ao marcar horário como ocupado:', err);
         res.status(500).json({ message: 'Erro ao marcar horário como ocupado' });
