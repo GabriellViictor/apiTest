@@ -13,15 +13,22 @@ const UserSchema = new mongoose.Schema({
     login: String,
     senha: String,
 });
-
 const UserModel = mongoose.model('User', UserSchema);
 
 const HorarioSchema = new mongoose.Schema({
     horario: String,
     disponivel: Boolean,
 });
-
 const HorarioModel = mongoose.model('Horario', HorarioSchema);
+
+const AgendamentoSchema = new mongoose.Schema({
+    horario: String,
+    data: String,
+    servico: String,
+    valor: Number,
+    minuto: Number,
+});
+const AgendamentoModel = mongoose.model('Agendamento', AgendamentoSchema);
 
 app.post('/login', async (req: Request, res: Response) => {
     const { login, senha } = req.body;
@@ -60,7 +67,6 @@ app.get('/horarios-indisponiveis', async (req: Request, res: Response) => {
     }
 });
 
-// Rota para marcar um horário como ocupado
 app.post('/marcar-horario', async (req: Request, res: Response) => {
     const { horario } = req.body;
 
@@ -101,6 +107,16 @@ app.post('/desmarcar-horario', async (req: Request, res: Response) => {
     } catch (err) {
         console.error('Erro ao desmarcar horário:', err);
         res.status(500).json({ message: 'Erro ao desmarcar horário' });
+    }
+});
+
+app.get('/agendamentos', async (req: Request, res: Response) => {
+    try {
+        const agendamentos = await AgendamentoModel.find();
+        res.json(agendamentos);
+    } catch (err) {
+        console.error('Erro ao buscar agendamentos:', err);
+        res.status(500).json({ message: 'Erro ao buscar agendamentos' });
     }
 });
 
