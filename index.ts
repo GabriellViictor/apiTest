@@ -9,18 +9,21 @@ app.use(bodyParser.json());
 
 mongoose.connect('mongodb://localhost:27017/minha_base_de_dados');
 
+// Esquema do usuário
 const UserSchema = new mongoose.Schema({
     login: String,
     senha: String,
 });
 const UserModel = mongoose.model('User', UserSchema);
 
+// Esquema do horário
 const HorarioSchema = new mongoose.Schema({
     horario: String,
     disponivel: Boolean,
 });
 const HorarioModel = mongoose.model('Horario', HorarioSchema);
 
+// Esquema do agendamento
 const AgendamentoSchema = new mongoose.Schema({
     horario: String,
     data: String,
@@ -30,6 +33,7 @@ const AgendamentoSchema = new mongoose.Schema({
 });
 const AgendamentoModel = mongoose.model('Agendamento', AgendamentoSchema);
 
+// Rota de login
 app.post('/login', async (req: Request, res: Response) => {
     const { login, senha } = req.body;
 
@@ -47,6 +51,7 @@ app.post('/login', async (req: Request, res: Response) => {
     }
 });
 
+// Rotas de horários
 app.get('/horarios-disponiveis', async (req: Request, res: Response) => {
     try {
         const horariosDisponiveis = await HorarioModel.find({ disponivel: true });
@@ -67,6 +72,7 @@ app.get('/horarios-indisponiveis', async (req: Request, res: Response) => {
     }
 });
 
+// Rota para marcar um horário como ocupado
 app.post('/marcar-horario', async (req: Request, res: Response) => {
     const { horario } = req.body;
 
@@ -110,6 +116,7 @@ app.post('/desmarcar-horario', async (req: Request, res: Response) => {
     }
 });
 
+// Rota para obter todos os agendamentos
 app.get('/agendamentos', async (req: Request, res: Response) => {
     try {
         const agendamentos = await AgendamentoModel.find();
@@ -117,6 +124,24 @@ app.get('/agendamentos', async (req: Request, res: Response) => {
     } catch (err) {
         console.error('Erro ao buscar agendamentos:', err);
         res.status(500).json({ message: 'Erro ao buscar agendamentos' });
+    }
+});
+
+// Rota para desagendar um agendamento
+app.post('/desagendar', async (req: Request, res: Response) => {
+    const { horario, data } = req.body;
+
+    try {
+        const agendamentoRemovido = await AgendamentoModel.findOneAndDelete({ horario, data });
+
+        if (!agendamentoRemovido) {
+            return res.status(404).json({ message: 'Agendamento não encontrado' });
+        }
+
+        res.json({ message: `Agendamento para ${horario} na data ${data} removido com sucesso` });
+    } catch (err) {
+        console.error('Erro ao desagendar:', err);
+        res.status(500).json({ message: 'Erro ao desagendar' });
     }
 });
 
