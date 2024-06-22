@@ -26,6 +26,7 @@ const HorarioModel = mongoose.model('Horario', HorarioSchema);
 // Esquema do agendamento
 const AgendamentoSchema = new mongoose.Schema({
     horario: { type: mongoose.Schema.Types.ObjectId, ref: 'Horario' },
+    horarioTexto: String, // Campo adicional para armazenar o texto do horário
     data: String,
     servico: String,
     valor: Number,
@@ -89,6 +90,7 @@ app.post('/marcar-horario', async (req: Request, res: Response) => {
 
         const agendamento = new AgendamentoModel({
             horario: horarioMarcado._id,
+            horarioTexto: horario, // Adiciona o horário em formato de texto
             data,
             servico,
             valor,
